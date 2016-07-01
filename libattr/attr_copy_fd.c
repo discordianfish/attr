@@ -73,7 +73,7 @@ attr_copy_fd(const char *src_path, int src_fd,
 	if (check == NULL)
 		check = attr_copy_check_permissions;
 
-	size = flistxattr (src_fd, NULL, 0);
+	size = flistxattr (src_fd, NULL, 0, 0);
 	if (size < 0) {
 		if (errno != ENOSYS && errno != ENOTSUP) {
 			const char *qpath = quote (ctx, src_path);
@@ -89,7 +89,7 @@ attr_copy_fd(const char *src_path, int src_fd,
 		ret = -1;
 		goto getout;
 	}
-	size = flistxattr (src_fd, names, size);
+	size = flistxattr (src_fd, names, size, 0);
 	if (size < 0) {
 		const char *qpath = quote (ctx, src_path);
 		error (ctx, _("listing attributes of %s"), qpath);
@@ -108,7 +108,8 @@ attr_copy_fd(const char *src_path, int src_fd,
 		if (!*name || !check(name, ctx))
 			continue;
 
-		size = fgetxattr (src_fd, name, NULL, 0);
+		size = fgetxattr (src_fd, name, NULL, 0, 0, 0);
+
 		if (size < 0) {
 			const char *qpath = quote (ctx, src_path);
 			const char *qname = quote (ctx, name);
@@ -125,7 +126,7 @@ attr_copy_fd(const char *src_path, int src_fd,
 			error (ctx, "");
 			ret = -1;
 		}
-		size = fgetxattr (src_fd, name, value, size);
+		size = fgetxattr (src_fd, name, value, size, 0, 0);
 		if (size < 0) {
 			const char *qpath = quote (ctx, src_path);
 			const char *qname = quote (ctx, name);
@@ -136,7 +137,7 @@ attr_copy_fd(const char *src_path, int src_fd,
 			ret = -1;
 			continue;
 		}
-		if (fsetxattr (dst_fd, name, value, size, 0) != 0) {
+		if (fsetxattr (dst_fd, name, value, size, 0, 0) != 0) {
 			if (errno == ENOTSUP)
 				setxattr_ENOTSUP++;
 			else {

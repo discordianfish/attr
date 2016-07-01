@@ -39,6 +39,13 @@
 #undef roundup
 #define roundup(x,y) ((((x)+((y)-1))/(y))*(y))
 
+#ifdef __APPLE__
+ssize_t lgetxattr(const char *path, const char *name,
+                 void *value, size_t size) {
+	return getxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
+}
+#endif
+
 static const char *user_name = "user.";
 static const char *secure_name = "security.";
 static const char *trusted_name = "trusted.";
@@ -105,7 +112,6 @@ found:
 	return 0;
 }
 
-
 int
 attr_get(const char *path, const char *attrname, char *attrvalue,
 	 int *valuelength, int flags)
@@ -147,13 +153,13 @@ attr_getf(int fd, const char *attrname, char *attrvalue,
 	for (compat = 0; compat < 2; compat++) {
 		if ((c = api_convert(name, attrname, flags, compat)) < 0)
 			return c;
-		c = fgetxattr(fd, name, attrvalue, *valuelength);
+		c = fgetxattr(fd, name, attrvalue, *valuelength, 0, 0);
 		if (c < 0 && (errno == ENOATTR || errno == ENOTSUP))
 			continue;
 		break;
 	}
 	if (c < 0 && errno == ERANGE) {
-		int size = fgetxattr(fd, name, NULL, 0);
+		int size = fgetxattr(fd, name, NULL, 0, 0, 0);
 		if (size >= 0) {
 			*valuelength = size;
 			errno = E2BIG;
@@ -183,9 +189,9 @@ attr_set(const char *path, const char *attrname, const char *attrvalue,
 		if ((c = api_convert(name, attrname, flags, compat)) < 0)
 			return c;
 		if (flags & ATTR_DONTFOLLOW)
-			c = lsetxattr(path, name, buffer, valuelength, lflags);
+			c = lsetxattr(path, name, buffer, valuelength, lflags, 0);
 		else
-			c = setxattr(path, name, buffer, valuelength, lflags);
+			c = setxattr(path, name, buffer, valuelength, lflags, 0);
 		if (c < 0 && (errno == ENOATTR || errno == ENOTSUP))
 			continue;
 		break;
@@ -209,7 +215,7 @@ attr_setf(int fd, const char *attrname,
 	for (compat = 0; compat < 2; compat++) {
 		if ((c = api_convert(name, attrname, flags, compat)) < 0)
 			return c;
-		c = fsetxattr(fd, name, buffer, valuelength, lflags);
+		c = fsetxattr(fd, name, buffer, valuelength, lflags, 0);
 		if (c < 0 && (errno == ENOATTR || errno == ENOTSUP))
 			continue;
 		break;
@@ -229,7 +235,7 @@ attr_remove(const char *path, const char *attrname, int flags)
 		if (flags & ATTR_DONTFOLLOW)
 			c = lremovexattr(path, name);
 		else
-			c = removexattr(path, name);
+			c = removexattr(path, name, 0);
 		if (c < 0 && (errno == ENOATTR || errno == ENOTSUP))
 			continue;
 		break;
@@ -246,7 +252,7 @@ attr_removef(int fd, const char *attrname, int flags)
 	for (compat = 0; compat < 2; compat++) {
 		if ((c = api_convert(name, attrname, flags, compat)) < 0)
 			return c;
-		c = fremovexattr(fd, name);
+		c = fremovexattr(fd, name, 0);
 		if (c < 0 && (errno == ENOATTR || errno == ENOTSUP))
 			continue;
 		break;
@@ -301,9 +307,9 @@ attr_list(const char *path, char *buffer, const int buffersize, int flags,
 	bzero(buffer, sizeof(attrlist_t));
 
 	if (flags & ATTR_DONTFOLLOW)
-		length = llistxattr(path, lbuf, sizeof(lbuf));
+		length = llistxattr(path, lbuf, sizeof(lbuf), 0);
 	else
-		length = listxattr(path, lbuf, sizeof(lbuf));
+		length = listxattr(path, lbuf, sizeof(lbuf), 0);
 	if (length <= 0)
 		return length;
 
@@ -316,7 +322,7 @@ attr_list(const char *path, char *buffer, const int buffersize, int flags,
 		if (flags & ATTR_DONTFOLLOW)
 			vlength = lgetxattr(path, l, NULL, 0);
 		else
-			vlength =  getxattr(path, l, NULL, 0);
+			vlength =  getxattr(path, l, NULL, 0, 0, 0);
 		if (vlength < 0 && (errno == ENOATTR || errno == ENOTSUP))
 			continue;
 		if (count++ < cursor->opaque[0])
@@ -350,7 +356,7 @@ attr_listf(int fd, char *buffer, const int buffersize, int flags,
 	}
 	bzero(buffer, sizeof(attrlist_t));
 
-	length = flistxattr(fd, lbuf, sizeof(lbuf));
+	length = flistxattr(fd, lbuf, sizeof(lbuf), 0);
 	if (length < 0)
 		return length;
 
@@ -360,7 +366,7 @@ attr_listf(int fd, char *buffer, const int buffersize, int flags,
 	for (l = lbuf; l != lbuf + length; l = strchr(l, '\0') + 1) {
 		if (api_unconvert(name, l, flags))
 			continue;
-		vlength = fgetxattr(fd, l, NULL, 0);
+		vlength = fgetxattr(fd, l, NULL, 0, 0, 0);
 		if (vlength < 0 && (errno == ENOATTR || errno == ENOTSUP))
 			continue;
 		if (count++ < cursor->opaque[0])

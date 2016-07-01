@@ -31,57 +31,57 @@
 int libattr_setxattr(const char *path, const char *name,
 		     void *value, size_t size, int flags)
 {
-	return setxattr(path, name, value, size, flags);
+	return setxattr(path, name, value, size, flags, 0);
 }
 
 int libattr_lsetxattr(const char *path, const char *name,
 		      void *value, size_t size, int flags)
 {
-	return lsetxattr(path, name, value, size, flags);
+	return lsetxattr(path, name, value, size, flags, 0);
 }
 
 int libattr_fsetxattr(int filedes, const char *name,
 		      void *value, size_t size, int flags)
 {
-	return fsetxattr(filedes, name, value, size, flags);
+	return fsetxattr(filedes, name, value, size, flags, 0);
 }
 
 ssize_t libattr_getxattr(const char *path, const char *name,
 			 void *value, size_t size)
 {
-	return getxattr(path, name, value, size);
+	return getxattr(path, name, value, size, 0, 0);
 }
 
 ssize_t libattr_lgetxattr(const char *path, const char *name,
 			  void *value, size_t size)
 {
-	return lgetxattr(path, name, value, size);
+	return lgetxattr(path, name, value, size, 0);
 }
 
 ssize_t libattr_fgetxattr(int filedes, const char *name,
 			  void *value, size_t size)
 {
-	return fgetxattr(filedes, name, value, size);
+	return fgetxattr(filedes, name, value, size, 0, 0);
 }
 
 ssize_t libattr_listxattr(const char *path, char *list, size_t size)
 {
-	return listxattr(path, list, size);
+	return listxattr(path, list, size, 0);
 }
 
 ssize_t libattr_llistxattr(const char *path, char *list, size_t size)
 {
-	return llistxattr(path, list, size);
+	return llistxattr(path, list, size, 0);
 }
 
 ssize_t libattr_flistxattr(int filedes, char *list, size_t size)
 {
-	return flistxattr(filedes, list, size);
+	return flistxattr(filedes, list, size, 0);
 }
 
 int libattr_removexattr(const char *path, const char *name)
 {
-	return removexattr(path, name);
+	return removexattr(path, name, 0);
 }
 
 int libattr_lremovexattr(const char *path, const char *name)
@@ -91,7 +91,7 @@ int libattr_lremovexattr(const char *path, const char *name)
 
 int libattr_fremovexattr(int filedes, const char *name)
 {
-	return fremovexattr(filedes, name);
+	return fremovexattr(filedes, name, 0);
 }
 
 #ifdef HAVE_VISIBILITY_ATTRIBUTE

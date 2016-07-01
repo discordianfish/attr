@@ -90,12 +90,12 @@ static const char *xquote(const char *str, const char *quote_chars)
 int do_setxattr(const char *path, const char *name,
 		const void *value, size_t size)
 {
-	return (opt_deref ? setxattr : lsetxattr)(path, name, value, size, 0);
+	return setxattr(path, name, value, size, 0, 0);
 }
 
 int do_removexattr(const char *path, const char *name)
 {
-	return (opt_deref ? removexattr : lremovexattr)(path, name);
+	return removexattr(path, name, 0);
 }
 
 int restore(const char *filename)

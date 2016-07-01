@@ -37,6 +37,12 @@
 
 #define CMD_LINE_OPTIONS "n:de:m:hRLP"
 #define CMD_LINE_SPEC "[-hRLP] [-n name|-d] [-e en] [-m pattern] path..."
+#ifdef __APPLE__
+ssize_t lgetxattr(const char *path, const char *name,
+                 void *value, size_t size) {
+        return getxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
+}
+#endif
 
 struct option long_options[] = {
 	{ "name",		1, 0, 'n' },
@@ -81,14 +87,12 @@ static const char *xquote(const char *str, const char *quote_chars)
 
 int do_getxattr(const char *path, const char *name, void *value, size_t size)
 {
-	return ((walk_flags & WALK_TREE_DEREFERENCE) ?
-		getxattr : lgetxattr)(path, name, value, size);
+	return getxattr(path, name, value, size, 0, 0);
 }
 
 int do_listxattr(const char *path, char *list, size_t size)
 {
-	return ((walk_flags & WALK_TREE_DEREFERENCE) ?
-		listxattr : llistxattr)(path, list, size);
+	return listxattr(path, list, size, 0);
 }
 
 const char *strerror_ea(int err)
